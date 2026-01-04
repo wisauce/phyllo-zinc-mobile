@@ -1,24 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-  RefreshControl,
-  Modal,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import RichTextEditor from '@/components/rich-text-editor';
+import { BorderRadius, FontSizes, FontWeights, Spacing } from '@/constants';
 import { Colors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { BorderRadius, FontSizes, FontWeights, Spacing } from '@/constants';
-import { useAuthStore, useArticlesStore, API_BASE_URL } from '@/store';
+import { API_BASE_URL, Article, useArticlesStore, useAuthStore } from '@/store';
 
 type AdminTab = 'articles' | 'whitelist';
 
@@ -26,6 +29,27 @@ interface WhitelistEntry {
   id: number;
   email: string;
   createdAt: string;
+}
+
+// Categories for articles (matching web version)
+const ARTICLE_CATEGORIES = [
+  'Research',
+  'News',
+  'Tutorial',
+  'Case Study',
+  'Opinion',
+];
+
+// Article form data interface
+interface ArticleFormData {
+  title: string;
+  excerpt: string;
+  content: string;
+  image: string;
+  author: string;
+  category: string;
+  readTime: string;
+  status: string;
 }
 
 export default function AdminScreen() {
@@ -47,8 +71,21 @@ export default function AdminScreen() {
   const [addingEmail, setAddingEmail] = useState(false);
 
   // Article modal state
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editingArticle, setEditingArticle] = useState<any>(null);
+  const [articleModalVisible, setArticleModalVisible] = useState(false);
+  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState<ArticleFormData>({
+    title: '',
+    excerpt: '',
+    content: '',
+    image: '',
+    author: '',
+    category: 'Research',
+    readTime: '5 min read',
+    status: 'published',
+  });
+
+  const { createArticle, updateArticle } = useArticlesStore();
 
   useEffect(() => {
     if (!session || !isAdmin) {
@@ -175,6 +212,104 @@ export default function AdminScreen() {
     });
   };
 
+  // Article modal handlers
+  const resetFormData = () => {
+    setFormData({
+      title: '',
+      excerpt: '',
+      content: '',
+      image: '',
+      author: '',
+      category: 'Research',
+      readTime: '5 min read',
+      status: 'published',
+    });
+  };
+
+  const handleOpenArticleModal = (article?: Article) => {
+    if (article) {
+      setEditingArticle(article);
+      setFormData({
+        title: article.title || '',
+        excerpt: article.excerpt || '',
+        content: article.content || '',
+        image: article.image || '',
+        author: article.author || '',
+        category: article.category || 'Research',
+        readTime: article.readTime || '5 min read',
+        status: article.status || 'published',
+      });
+    } else {
+      setEditingArticle(null);
+      resetFormData();
+    }
+    setArticleModalVisible(true);
+  };
+
+  const handleCloseArticleModal = () => {
+    setArticleModalVisible(false);
+    setEditingArticle(null);
+    resetFormData();
+  };
+
+  const handleInputChange = (field: keyof ArticleFormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveArticle = async () => {
+    // Validation (similar to web version)
+    if (!formData.title.trim()) {
+      Alert.alert('Validation Error', 'Please enter a title.');
+      return;
+    }
+    if (!formData.excerpt.trim()) {
+      Alert.alert('Validation Error', 'Please enter an excerpt.');
+      return;
+    }
+    if (!formData.content.trim()) {
+      Alert.alert('Validation Error', 'Please enter the article content.');
+      return;
+    }
+    if (!formData.author.trim()) {
+      Alert.alert('Validation Error', 'Please enter an author name.');
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      let result;
+      if (editingArticle) {
+        // Update existing article
+        result = await updateArticle(editingArticle.id, {
+          ...formData,
+          date: editingArticle.date || new Date().toISOString().split('T')[0],
+        });
+      } else {
+        // Create new article
+        result = await createArticle({
+          ...formData,
+          date: new Date().toISOString().split('T')[0],
+        });
+      }
+
+      if (result.success) {
+        Alert.alert(
+          'Success',
+          `Article ${editingArticle ? 'updated' : 'created'} successfully!`
+        );
+        handleCloseArticleModal();
+      } else {
+        Alert.alert('Error', result.error || 'Failed to save article.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'An unexpected error occurred.');
+      console.error('Save article error:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (!session || !isAdmin) {
     return (
       <View style={[styles.container, styles.center, { backgroundColor: colors.background }]}>
@@ -256,7 +391,7 @@ export default function AdminScreen() {
               </Text>
               <TouchableOpacity
                 style={[styles.addButton, { backgroundColor: colors.primary }]}
-                onPress={() => Alert.alert('Coming Soon', 'Article creation from mobile will be available soon. Please use the web dashboard.')}
+                onPress={() => handleOpenArticleModal()}
               >
                 <Ionicons name="add" size={20} color="#fff" />
                 <Text style={styles.addButtonText}>New</Text>
@@ -303,7 +438,7 @@ export default function AdminScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.actionButton, { backgroundColor: colors.input }]}
-                      onPress={() => Alert.alert('Coming Soon', 'Article editing from mobile will be available soon.')}
+                      onPress={() => handleOpenArticleModal(article)}
                     >
                       <Ionicons name="pencil-outline" size={18} color={colors.text} />
                     </TouchableOpacity>
@@ -397,6 +532,228 @@ export default function AdminScreen() {
           </>
         )}
       </ScrollView>
+
+      {/* Article Create/Edit Modal */}
+      <Modal
+        visible={articleModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={handleCloseArticleModal}
+      >
+        <KeyboardAvoidingView 
+          style={[styles.modalContainer, { backgroundColor: colors.background }]}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          {/* Modal Header */}
+          <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+            <TouchableOpacity 
+              onPress={handleCloseArticleModal}
+              style={styles.modalCloseButton}
+            >
+              <Ionicons name="close" size={24} color={colors.text} />
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              {editingArticle ? 'Edit Article' : 'New Article'}
+            </Text>
+            <TouchableOpacity
+              onPress={handleSaveArticle}
+              disabled={isSaving}
+              style={[styles.modalSaveButton, { backgroundColor: colors.primary }]}
+            >
+              {isSaving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.modalSaveButtonText}>Save</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Modal Form */}
+          <ScrollView 
+            style={styles.modalContent}
+            contentContainerStyle={styles.modalScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Title */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.formLabel, { color: colors.text }]}>Title *</Text>
+              <TextInput
+                style={[styles.formInput, { 
+                  backgroundColor: colors.input, 
+                  color: colors.text,
+                  borderColor: colors.border,
+                }]}
+                placeholder="Enter article title"
+                placeholderTextColor={colors.textMuted}
+                value={formData.title}
+                onChangeText={(value) => handleInputChange('title', value)}
+              />
+            </View>
+
+            {/* Author */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.formLabel, { color: colors.text }]}>Author *</Text>
+              <TextInput
+                style={[styles.formInput, { 
+                  backgroundColor: colors.input, 
+                  color: colors.text,
+                  borderColor: colors.border,
+                }]}
+                placeholder="Enter author name"
+                placeholderTextColor={colors.textMuted}
+                value={formData.author}
+                onChangeText={(value) => handleInputChange('author', value)}
+              />
+            </View>
+
+            {/* Category Picker */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.formLabel, { color: colors.text }]}>Category</Text>
+              <View style={styles.categoryPicker}>
+                {ARTICLE_CATEGORIES.map((cat) => (
+                  <TouchableOpacity
+                    key={cat}
+                    style={[
+                      styles.categoryOption,
+                      { 
+                        backgroundColor: formData.category === cat ? colors.primary : colors.input,
+                        borderColor: formData.category === cat ? colors.primary : colors.border,
+                      },
+                    ]}
+                    onPress={() => handleInputChange('category', cat)}
+                  >
+                    <Text style={[
+                      styles.categoryOptionText,
+                      { color: formData.category === cat ? '#fff' : colors.text }
+                    ]}>
+                      {cat}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Excerpt */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.formLabel, { color: colors.text }]}>Excerpt *</Text>
+              <TextInput
+                style={[styles.formInput, styles.formTextArea, { 
+                  backgroundColor: colors.input, 
+                  color: colors.text,
+                  borderColor: colors.border,
+                }]}
+                placeholder="Brief summary of the article"
+                placeholderTextColor={colors.textMuted}
+                value={formData.excerpt}
+                onChangeText={(value) => handleInputChange('excerpt', value)}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+            </View>
+
+            {/* Content - Rich Text Editor */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.formLabel, { color: colors.text }]}>Content *</Text>
+              <RichTextEditor
+                value={formData.content}
+                onChange={(html) => handleInputChange('content', html)}
+                placeholder="Write the full article content here..."
+                minHeight={250}
+              />
+            </View>
+
+            {/* Image URL */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.formLabel, { color: colors.text }]}>Image URL</Text>
+              <TextInput
+                style={[styles.formInput, { 
+                  backgroundColor: colors.input, 
+                  color: colors.text,
+                  borderColor: colors.border,
+                }]}
+                placeholder="https://example.com/image.jpg"
+                placeholderTextColor={colors.textMuted}
+                value={formData.image}
+                onChangeText={(value) => handleInputChange('image', value)}
+                autoCapitalize="none"
+                keyboardType="url"
+              />
+            </View>
+
+            {/* Read Time */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.formLabel, { color: colors.text }]}>Read Time</Text>
+              <TextInput
+                style={[styles.formInput, { 
+                  backgroundColor: colors.input, 
+                  color: colors.text,
+                  borderColor: colors.border,
+                }]}
+                placeholder="e.g., 5 min read"
+                placeholderTextColor={colors.textMuted}
+                value={formData.readTime}
+                onChangeText={(value) => handleInputChange('readTime', value)}
+              />
+            </View>
+
+            {/* Status Picker */}
+            <View style={styles.formGroup}>
+              <Text style={[styles.formLabel, { color: colors.text }]}>Status</Text>
+              <View style={styles.statusPicker}>
+                <TouchableOpacity
+                  style={[
+                    styles.statusOption,
+                    { 
+                      backgroundColor: formData.status === 'published' ? colors.success : colors.input,
+                      borderColor: formData.status === 'published' ? colors.success : colors.border,
+                    },
+                  ]}
+                  onPress={() => handleInputChange('status', 'published')}
+                >
+                  <Ionicons 
+                    name="checkmark-circle" 
+                    size={16} 
+                    color={formData.status === 'published' ? '#fff' : colors.textMuted} 
+                  />
+                  <Text style={[
+                    styles.statusOptionText,
+                    { color: formData.status === 'published' ? '#fff' : colors.text }
+                  ]}>
+                    Published
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.statusOption,
+                    { 
+                      backgroundColor: formData.status === 'draft' ? colors.warning : colors.input,
+                      borderColor: formData.status === 'draft' ? colors.warning : colors.border,
+                    },
+                  ]}
+                  onPress={() => handleInputChange('status', 'draft')}
+                >
+                  <Ionicons 
+                    name="create" 
+                    size={16} 
+                    color={formData.status === 'draft' ? '#fff' : colors.textMuted} 
+                  />
+                  <Text style={[
+                    styles.statusOptionText,
+                    { color: formData.status === 'draft' ? '#fff' : colors.text }
+                  ]}>
+                    Draft
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Spacer for keyboard */}
+            <View style={{ height: Spacing.xxxl }} />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -605,5 +962,107 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  // Article Modal Styles
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+  },
+  modalCloseButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalTitle: {
+    fontSize: FontSizes.lg,
+    fontWeight: FontWeights.semibold,
+  },
+  modalSaveButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    minWidth: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalSaveButtonText: {
+    color: '#fff',
+    fontSize: FontSizes.md,
+    fontWeight: FontWeights.semibold,
+  },
+  modalContent: {
+    flex: 1,
+  },
+  modalScrollContent: {
+    padding: Spacing.lg,
+  },
+
+  // Form Styles
+  formGroup: {
+    marginBottom: Spacing.lg,
+  },
+  formLabel: {
+    fontSize: FontSizes.sm,
+    fontWeight: FontWeights.medium,
+    marginBottom: Spacing.sm,
+  },
+  formInput: {
+    height: 48,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    fontSize: FontSizes.md,
+  },
+  formTextArea: {
+    height: 100,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.md,
+  },
+  formContentArea: {
+    height: 200,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.md,
+  },
+  categoryPicker: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  categoryOption: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+  },
+  categoryOptionText: {
+    fontSize: FontSizes.sm,
+    fontWeight: FontWeights.medium,
+  },
+  statusPicker: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  statusOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    gap: Spacing.xs,
+  },
+  statusOptionText: {
+    fontSize: FontSizes.md,
+    fontWeight: FontWeights.medium,
   },
 });

@@ -1,5 +1,5 @@
-import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { create } from 'zustand';
 
 // Export API_BASE_URL for use in other files
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://phyllo-zinc-final-deployment.vercel.app';
@@ -337,23 +337,39 @@ export const useChatStore = create<ChatState>((set, get) => ({
 // Virtual Lab Store
 interface VirtualLabState {
   currentScene: number;
-  globalState: Record<string, any>;
+  globalState: {
+    leavesCollected: boolean;
+    isGrounded: boolean;
+    solventMixed: boolean;
+    macerationDone: boolean;
+    extractFiltered: boolean;
+    zincPrepared: boolean;
+    finalMixDone: boolean;
+    applicationMethod: string | null;
+  };
   setCurrentScene: (scene: number) => void;
   updateState: (key: string, value: any) => void;
   setScene: (scene: number) => void;
   nextScene: () => void;
   prevScene: () => void;
   resetLab: () => void;
+  completeScene: (sceneIndex: number) => void;
 }
+
+const initialGlobalState = {
+  leavesCollected: false,
+  isGrounded: false,
+  solventMixed: false,
+  macerationDone: false,
+  extractFiltered: false,
+  zincPrepared: false,
+  finalMixDone: false,
+  applicationMethod: null,
+};
 
 export const useVirtualLabStore = create<VirtualLabState>((set) => ({
   currentScene: 0,
-  globalState: {
-    isGrounded: false,
-    zincPrepared: false,
-    extractFiltered: false,
-    applicationMethod: null,
-  },
+  globalState: { ...initialGlobalState },
 
   setCurrentScene: (scene) => set({ currentScene: scene }),
   setScene: (scene) => set({ currentScene: scene }),
@@ -370,13 +386,27 @@ export const useVirtualLabStore = create<VirtualLabState>((set) => ({
     currentScene: Math.max(0, state.currentScene - 1) 
   })),
 
+  completeScene: (sceneIndex) => set((state) => {
+    const stateUpdates: Record<number, Partial<typeof initialGlobalState>> = {
+      0: { leavesCollected: true },
+      1: { isGrounded: true },
+      2: { solventMixed: true },
+      3: { macerationDone: true },
+      4: { extractFiltered: true },
+      5: { zincPrepared: true },
+      6: { finalMixDone: true },
+    };
+    return {
+      currentScene: Math.min(6, sceneIndex + 1),
+      globalState: { 
+        ...state.globalState, 
+        ...stateUpdates[sceneIndex] 
+      },
+    };
+  }),
+
   resetLab: () => set({
     currentScene: 0,
-    globalState: {
-      isGrounded: false,
-      zincPrepared: false,
-      extractFiltered: false,
-      applicationMethod: null,
-    },
+    globalState: { ...initialGlobalState },
   }),
 }));

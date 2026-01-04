@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator,
-  Share,
-  useWindowDimensions,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import RenderHtml from 'react-native-render-html';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BorderRadius, FontSizes, FontWeights, Spacing } from '@/constants';
 import { Colors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { BorderRadius, FontSizes, FontWeights, Spacing } from '@/constants';
 import { API_BASE_URL } from '@/store';
 
 interface Article {
@@ -27,8 +27,12 @@ interface Article {
   content: string;
   excerpt?: string;
   coverImage?: string;
-  categoryName: string;
-  authorName: string;
+  image?: string;
+  category: string;
+  categoryName?: string;
+  author: string;
+  authorName?: string;
+  readTime?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -201,9 +205,9 @@ export default function ArticleDetailScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Cover Image */}
-        {article.coverImage && (
+        {(article.coverImage || article.image) && (
           <Image
-            source={{ uri: article.coverImage }}
+            source={{ uri: article.coverImage || article.image }}
             style={styles.coverImage}
             resizeMode="cover"
           />
@@ -214,7 +218,7 @@ export default function ArticleDetailScreen() {
           {/* Category Badge */}
           <View style={[styles.categoryBadge, { backgroundColor: colors.primaryLight }]}>
             <Text style={[styles.categoryText, { color: colors.primary }]}>
-              {article.categoryName}
+              {article.categoryName || article.category}
             </Text>
           </View>
 
@@ -228,7 +232,7 @@ export default function ArticleDetailScreen() {
             <View style={styles.metaItem}>
               <Ionicons name="person-outline" size={16} color={colors.textMuted} />
               <Text style={[styles.metaText, { color: colors.textMuted }]}>
-                {article.authorName}
+                {article.authorName || article.author}
               </Text>
             </View>
             <View style={styles.metaDivider} />
@@ -238,6 +242,17 @@ export default function ArticleDetailScreen() {
                 {formatDate(article.createdAt)}
               </Text>
             </View>
+            {article.readTime && (
+              <>
+                <View style={styles.metaDivider} />
+                <View style={styles.metaItem}>
+                  <Ionicons name="time-outline" size={16} color={colors.textMuted} />
+                  <Text style={[styles.metaText, { color: colors.textMuted }]}>
+                    {article.readTime}
+                  </Text>
+                </View>
+              </>
+            )}
           </View>
 
           {/* Divider */}
