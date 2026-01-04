@@ -33,7 +33,7 @@ export default function LabScreen() {
         >
           <View style={styles.heroContent}>
             <View style={styles.iconContainer}>
-              <Image source={LabEquipmentImages.beaker} style={styles.heroImage} resizeMode="contain" />
+              <Image source={LabEquipmentImages.vlab} style={styles.heroImage} resizeMode="contain" />
             </View>
             <Text style={styles.heroTitle}>Virtual Lab</Text>
             <Text style={styles.heroSubtitle}>

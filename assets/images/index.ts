@@ -33,6 +33,7 @@ export const LabEquipmentImages = {
   solvent: require('./solvent.png'),
   meniranleaves: require('./meniranleaves.png'),
   finalproduct: require('./finalproduct.png'),
+  vlab: require('./beaker_illustration.png'),
 };
 
 // Map team member image filename to actual require
