@@ -1,17 +1,18 @@
-import React, { useEffect } from 'react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
+import * as ExpoSplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import React, { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import * as SplashScreen from 'expo-splash-screen';
+import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import SplashScreen from '@/components/splash-screen';
 import { Colors } from '@/constants/colors';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '@/store';
 
 // Prevent splash screen from auto-hiding
-SplashScreen.preventAutoHideAsync();
+ExpoSplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -21,14 +22,25 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const { loadSession } = useAuthStore();
+  const [showSplash, setShowSplash] = useState(true);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const init = async () => {
       await loadSession();
-      await SplashScreen.hideAsync();
+      await ExpoSplashScreen.hideAsync();
+      setIsReady(true);
     };
     init();
   }, []);
+
+  const handleSplashFinish = () => {
+    setShowSplash(false);
+  };
+
+  if (!isReady) {
+    return null;
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -76,6 +88,7 @@ export default function RootLayout() {
           />
         </Stack>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
       </ThemeProvider>
     </GestureHandlerRootView>
   );

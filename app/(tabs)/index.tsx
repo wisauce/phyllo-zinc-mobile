@@ -1,37 +1,45 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  ImageBackground,
   Dimensions,
+  Image,
+  ImageBackground,
+  Linking,
   RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors } from '@/constants/colors';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { BackgroundImages, PhyllozincLogo } from '@/assets/images';
+import { ArticleCard } from '@/components/article-card';
+import { TeamCarousel } from '@/components/team-carousel';
 import {
+  BENEFITS,
   BorderRadius,
   FontSizes,
   FontWeights,
-  Spacing,
-  Shadows,
   METHODOLOGY_STEPS,
-  BENEFITS,
+  Shadows,
+  Spacing,
 } from '@/constants';
+import { Colors } from '@/constants/colors';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useArticlesStore, useAuthStore } from '@/store';
-import { ArticleCard } from '@/components/article-card';
-import { TeamCarousel } from '@/components/team-carousel';
-import { PhyllozincLogo, BackgroundImages } from '@/assets/images';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+const SOCIAL_LINKS = {
+  instagram: "https://www.instagram.com/pkmreugm_phyllozinc/",
+  youtube: "https://www.youtube.com/@pkmreugm_phyllozinc", 
+  facebook: "https://www.facebook.com/profile.php?id=61578299128790&sk=about",   
+  tiktok: "https://www.tiktok.com/@pkmreugm_phyllozinc",       
+};
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
@@ -103,7 +111,7 @@ export default function HomeScreen() {
               </Text>
               <TouchableOpacity
                 style={styles.ctaButton}
-                onPress={() => router.push('/virtual-lab')}
+                onPress={() => router.push('/lab')}
               >
                 <Text style={styles.ctaButtonText}>Explore Virtual Lab</Text>
               </TouchableOpacity>
@@ -160,6 +168,144 @@ export default function HomeScreen() {
               <Text style={[styles.progressLabel, { color: colors.textMuted }]}>
                 vs 76.57M from Oil & Gas
               </Text>
+            </View>
+          </View>
+
+          {/* Feed Efficiency Card */}
+          <View style={[styles.crisisCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.crisisStats}>
+              <Text style={[styles.statNumber, { color: colors.primary }]}>15%</Text>
+              <Text style={[styles.statLabel, { color: colors.textMuted }]}>
+                Energy lost as methane waste
+              </Text>
+            </View>
+            <Text style={[styles.crisisTitle, { color: colors.text }]}>
+              The Feed Efficiency Paradox
+            </Text>
+            <Text style={[styles.crisisDescription, { color: colors.textMuted }]}>
+              Methane production in the rumen doesn't just harm the climate—it directly reduces feed efficiency. Energy meant for animal growth is lost as methane gas instead.
+            </Text>
+            <View style={styles.progressBarContainer}>
+              <View style={[styles.progressBar, { backgroundColor: colors.primaryLight }]}>
+                <View style={[styles.progressFill, { width: '15%', backgroundColor: colors.error }]} />
+              </View>
+              <Text style={[styles.progressLabel, { color: colors.textMuted }]}>
+                Energy allocation lost as methane emissions
+              </Text>
+            </View>
+            <View style={styles.progressBarContainer}>
+              <View style={[styles.progressBar, { backgroundColor: colors.primaryLight }]}>
+                <View style={[styles.progressFill, { width: '85%', backgroundColor: colors.primary }]} />
+              </View>
+              <Text style={[styles.progressLabel, { color: colors.textMuted }]}>
+                Potential growth energy available 
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Solution: PhylloZinc */}
+        <View style={[styles.section, { backgroundColor: colors.primaryLight + '30' }]}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              The Solution: PhylloZinc
+            </Text>
+            <View style={[styles.divider, { backgroundColor: colors.primary }]} />
+            <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>
+              An innovative green technology to address multiple environmental challenges simultaneously
+            </Text>
+          </View>
+
+          <View style={styles.solutionCards}>
+            {[
+              { icon: 'arrow-down', title: 'Reduce Emissions', desc: 'Green-synthesized ZnO nanoparticles inhibit methane-producing microbes in the rumen, directly reducing CH₄ emissions.' },
+              { icon: 'arrow-up', title: 'Improve Efficiency', desc: 'By reducing methane production, more feed energy is channeled toward animal growth and productivity.' },
+              { icon: 'leaf', title: 'Sustainable Approach', desc: 'Synthesized entirely from plant materials using green chemistry—no toxic byproducts or environmental harm.' },
+            ].map((item, index) => (
+              <View
+                key={index}
+                style={[styles.solutionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+              >
+                <View style={[styles.solutionIcon, { backgroundColor: colors.primaryLight }]}>
+                  <Ionicons name={item.icon as any} size={24} color={colors.primary} />
+                </View>
+                <Text style={[styles.solutionTitle, { color: colors.text }]}>
+                  {item.title}
+                </Text>
+                <Text style={[styles.solutionDesc, { color: colors.textMuted }]}>
+                  {item.desc}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* PhylloZinc's Potential Impact */}
+        <View style={[styles.impactSection, { backgroundColor: colors.primary }]}>
+          <Text style={styles.impactTitle}>PhylloZinc's Potential Impact</Text>
+          <View style={styles.impactGrid}>
+            {[
+              { value: '50%', label: 'Potential methane reduction' },
+              { value: '+12%', label: 'Estimated feed efficiency gain' },
+              { value: '100%', label: 'Natural, green synthesis' },
+              { value: '∞', label: 'Scalable & sustainable' },
+            ].map((stat, index) => (
+              <View key={index} style={styles.impactStat}>
+                <Text style={styles.impactValue}>{stat.value}</Text>
+                <Text style={styles.impactLabel}>{stat.label}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Why PhylloZinc Matters */}
+        <View style={[styles.section, { backgroundColor: colors.background }]}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Why PhylloZinc Matters
+            </Text>
+            <View style={[styles.divider, { backgroundColor: colors.primary }]} />
+          </View>
+
+          <View style={styles.whyMattersContainer}>
+            {/* For the Planet */}
+            <View style={[styles.whyMattersCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.whyMattersTitle, { color: colors.primary }]}>
+                For the Planet
+              </Text>
+              {[
+                'Directly reduces greenhouse gas emissions',
+                'Supports global climate change mitigation',
+                'Uses sustainable, renewable resources',
+                'Produces zero toxic waste',
+              ].map((point, index) => (
+                <View key={index} style={styles.whyMattersPoint}>
+                  <Text style={[styles.checkMark, { color: colors.primary }]}>✓</Text>
+                  <Text style={[styles.whyMattersText, { color: colors.textMuted }]}>
+                    {point}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            {/* For Farmers & Industry */}
+            <View style={[styles.whyMattersCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.whyMattersTitle, { color: colors.primary }]}>
+                For Farmers & Industry
+              </Text>
+              {[
+                'Improves livestock productivity and profitability',
+                'Enhances animal health and nutrition',
+                'Cost-effective feed additive',
+                'Simple integration into existing practices',
+              ].map((point, index) => (
+                <View key={index} style={styles.whyMattersPoint}>
+                  <Text style={[styles.checkMark, { color: colors.primary }]}>✓</Text>
+                  <Text style={[styles.whyMattersText, { color: colors.textMuted }]}>
+                    {point}
+                  </Text>
+                </View>
+              ))}
             </View>
           </View>
         </View>
@@ -312,7 +458,7 @@ export default function HomeScreen() {
         <View style={[styles.footer, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
           <View style={styles.footerLogo}>
             <View style={[styles.logoCircle, { backgroundColor: colors.primary }]}>
-              <Ionicons name="leaf" size={20} color="#fff" />
+              <Image source={PhyllozincLogo} style={styles.logoImage} resizeMode="cover" />
             </View>
             <Text style={[styles.footerLogoText, { color: colors.text }]}>
               PhylloZinc Research
@@ -323,18 +469,24 @@ export default function HomeScreen() {
           </Text>
           
           <View style={styles.socialLinks}>
-            {['logo-instagram', 'logo-youtube', 'logo-facebook'].map((icon, index) => (
+            {[
+              { icon: 'logo-instagram', url: SOCIAL_LINKS.instagram },
+              { icon: 'logo-youtube', url: SOCIAL_LINKS.youtube },
+              { icon: 'logo-facebook', url: SOCIAL_LINKS.facebook },
+              { icon: 'logo-tiktok', url: SOCIAL_LINKS.tiktok },
+            ].map((social, index) => (
               <TouchableOpacity
                 key={index}
                 style={[styles.socialButton, { backgroundColor: colors.primaryLight, borderColor: colors.border }]}
+                onPress={() => Linking.openURL(social.url)}
               >
-                <Ionicons name={icon as any} size={20} color={colors.primary} />
+                <Ionicons name={social.icon as any} size={20} color={colors.primary} />
               </TouchableOpacity>
             ))}
           </View>
 
           <Text style={[styles.copyright, { color: colors.textMuted }]}>
-            © 2025 PhylloZinc Research. All rights reserved.
+            © 2024 PhylloZinc Research. All rights reserved.
           </Text>
         </View>
       </ScrollView>
@@ -523,6 +675,100 @@ const styles = StyleSheet.create({
   progressLabel: {
     fontSize: FontSizes.xs,
     marginTop: Spacing.xs,
+  },
+
+  // Solution Cards
+  solutionCards: {
+    gap: Spacing.md,
+  },
+  solutionCard: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: Spacing.lg,
+    alignItems: 'center',
+  },
+  solutionIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
+  },
+  solutionTitle: {
+    fontSize: FontSizes.lg,
+    fontWeight: FontWeights.semibold,
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
+  },
+  solutionDesc: {
+    fontSize: FontSizes.sm,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+
+  // Impact Section
+  impactSection: {
+    padding: Spacing.xl,
+    marginHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    marginVertical: Spacing.lg,
+  },
+  impactTitle: {
+    fontSize: FontSizes.xl,
+    fontWeight: FontWeights.semibold,
+    color: '#fff',
+    marginBottom: Spacing.lg,
+  },
+  impactGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: Spacing.md,
+  },
+  impactStat: {
+    width: '47%',
+    marginBottom: Spacing.md,
+  },
+  impactValue: {
+    fontSize: 36,
+    fontWeight: FontWeights.bold,
+    color: '#fff',
+  },
+  impactLabel: {
+    fontSize: FontSizes.xs,
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: Spacing.xs,
+  },
+
+  // Why Matters Section
+  whyMattersContainer: {
+    gap: Spacing.md,
+  },
+  whyMattersCard: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: Spacing.lg,
+  },
+  whyMattersTitle: {
+    fontSize: FontSizes.lg,
+    fontWeight: FontWeights.semibold,
+    marginBottom: Spacing.md,
+  },
+  whyMattersPoint: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.sm,
+  },
+  checkMark: {
+    fontSize: FontSizes.md,
+    fontWeight: FontWeights.bold,
+    marginRight: Spacing.sm,
+  },
+  whyMattersText: {
+    flex: 1,
+    fontSize: FontSizes.sm,
+    lineHeight: 20,
   },
 
   // Overview Cards
