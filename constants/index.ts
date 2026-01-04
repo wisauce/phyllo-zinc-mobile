@@ -218,45 +218,45 @@ export const BENEFITS = [
 // Virtual Lab scenes
 export const VIRTUAL_LAB_SCENES = [
   { 
-    name: "Contaminated Farm", 
-    title: "Contaminated Farm",
-    icon: "warning-outline",
-    description: "Observe the effects of heavy metal contamination on agricultural soil and crops." 
-  },
-  { 
-    name: "Zinc Application", 
-    title: "Zinc Application",
-    icon: "flask-outline",
-    description: "Learn about different methods of applying zinc to contaminated soils." 
-  },
-  { 
-    name: "Cellular Absorption", 
-    title: "Cellular Absorption",
-    icon: "cellular-outline",
-    description: "Understand how zinc is absorbed at the cellular level in plants." 
-  },
-  { 
-    name: "Metal Competition", 
-    title: "Metal Competition",
-    icon: "swap-horizontal-outline",
-    description: "Discover how zinc competes with heavy metals for absorption sites." 
-  },
-  { 
-    name: "Healthy Growth", 
-    title: "Healthy Growth",
+    name: "Leaves Collection", 
+    title: "Collect Leaves",
     icon: "leaf-outline",
-    description: "See the positive effects of zinc treatment on plant health and growth." 
+    description: "Collect 5 Phyllanthus niruri leaves for the extraction process." 
   },
   { 
-    name: "Harvest Results", 
-    title: "Harvest Results",
-    icon: "nutrition-outline",
-    description: "Analyze the quality and safety of crops after zinc treatment." 
+    name: "Leaves Grinding", 
+    title: "Grind Leaves",
+    icon: "cog-outline",
+    description: "Grind the collected leaves into a fine powder using the grinder." 
   },
   { 
-    name: "Research Impact", 
-    title: "Research Impact",
-    icon: "globe-outline",
-    description: "Explore the global impact of this research on agriculture." 
+    name: "Solvent Mixing", 
+    title: "Mix Solvent",
+    icon: "flask-outline",
+    description: "Add ethanol solvent to the ground leaves to prepare for extraction." 
+  },
+  { 
+    name: "Hot Maceration", 
+    title: "Hot Maceration",
+    icon: "flame-outline",
+    description: "Heat the mixture on a hotplate to extract bioactive compounds." 
+  },
+  { 
+    name: "Extract Filtering", 
+    title: "Filter Extract",
+    icon: "funnel-outline",
+    description: "Filter the extract through filter paper to remove solid particles." 
+  },
+  { 
+    name: "Zinc Nanoparticle Synthesis", 
+    title: "Make Zinc NP",
+    icon: "sparkles-outline",
+    description: "Synthesize zinc oxide nanoparticles through green synthesis." 
+  },
+  { 
+    name: "Final Mixing", 
+    title: "Final Mix",
+    icon: "checkmark-circle-outline",
+    description: "Combine ZnO nanoparticles with plant extract for the final product." 
   },
 ];
